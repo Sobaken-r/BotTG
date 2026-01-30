@@ -2,7 +2,7 @@ import pandas as pd
 import re
 from .base_handler import BaseReportHandler
 
-class ScheduleReportHandler(BaseReportHandler):
+class ScheduleReportHandler(BaseReportHandler):#анализа расписания занятий
     def process_report(self):
         try:
             result = self._analyze_schedule()
@@ -32,7 +32,7 @@ class ScheduleReportHandler(BaseReportHandler):
                 
                 cell_str = str(cell)
                 
-                subject_match = re.search(r'Предмет:\s*([^<>\n]+)', cell_str, re.IGNORECASE)
+                subject_match = re.search(r'Предмет:\s*([^<>\n]+)', cell_str, re.IGNORECASE) #группировки данных
                 if subject_match:
                     subject = subject_match.group(1).strip()
                     

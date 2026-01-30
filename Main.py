@@ -16,7 +16,6 @@ from handlers.submitted_hw_report import SubmittedHWReportHandler
 TOKEN = "8467009043:AAF4h0kFcfH_QLisNWru6Cz4d_ZPq-VzRnc"
 
 SELECTING_OPTION, WAITING_FILE = range(2)
-user_data = {}
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
@@ -30,7 +29,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def handle_option(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_text = update.message.text
-    user_id = update.effective_user.id
     
     options = {
         "1.": (1, "Отчет по расписанию", "расписанием"),
@@ -43,7 +41,10 @@ async def handle_option(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     for prefix, (num, name, desc) in options.items():
         if prefix in user_text:
-            user_data[user_id] = num
+            context.user_data['selected_option'] = num
+            context.user_data['report_name'] = name
+            context.user_data['report_desc'] = desc
+            
             await update.message.reply_text(f"Вы выбрали: {name}\n\nЗагрузите Excel файл с {desc}.")
             return WAITING_FILE
     
@@ -51,9 +52,7 @@ async def handle_option(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return SELECTING_OPTION
 
 async def handle_file(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.effective_user.id
-    
-    if user_id not in user_data:
+    if 'selected_option' not in context.user_data:
         await update.message.reply_text("Сначала выберите тип отчета из меню.")
         return SELECTING_OPTION
     
@@ -69,7 +68,8 @@ async def handle_file(update: Update, context: ContextTypes.DEFAULT_TYPE):
         file = await document.get_file()
         file_bytes = await file.download_as_bytearray()
         
-        option = user_data[user_id]
+        option = context.user_data['selected_option']
+        
         handlers = {
             1: (ScheduleReportHandler, "расписанию"),
             2: (LessonTopicsHandler, "темам занятий"),
@@ -79,7 +79,7 @@ async def handle_file(update: Update, context: ContextTypes.DEFAULT_TYPE):
             6: (SubmittedHWReportHandler, "сданным ДЗ")
         }
         
-        HandlerClass, report_name = handlers[option] 
+        HandlerClass, report_name = handlers[option]
         handler = HandlerClass(file_bytes, file_name)
         result = handler.get_result()
         

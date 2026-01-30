@@ -132,7 +132,7 @@ class StudentsReportHandler(BaseReportHandler):#Отчет по студента
         filtered = []
         
         try:
-            df = self.df.copy()
+            df = self.df.copy()# независимая копия 
             
             hw_col = column_info['homework']
             cls_col = column_info['classroom']
